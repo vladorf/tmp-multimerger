@@ -129,9 +129,33 @@ class PRMatcher:
     def find_matching_prs(self, assigned_prs: List[Dict[str, Any]], example_diff: str) -> List[Dict[str, Any]]:
         matching_prs = []
         
+        def normalize_diff(diff_text: str) -> str:
+            """Remove only index lines from Git diff for comparison"""
+            lines = diff_text.strip().split('\n')
+            filtered_lines = []
+            
+            for i, line in enumerate(lines):
+                stripped_line = line.strip()
+                
+                # Skip index lines with various formats, but only if preceded by a diff header
+                if (stripped_line.startswith('index ') and '..' in stripped_line and
+                    i > 0 and lines[i-1].strip().startswith('diff --git ')):
+                    # Additional validation: ensure it looks like a git index line
+                    parts = stripped_line.split()
+                    if len(parts) >= 2 and '..' in parts[1]:
+                        continue
+                
+                filtered_lines.append(line)
+            
+            return '\n'.join(filtered_lines)
+        
+        normalized_example = normalize_diff(example_diff)
+        
         for pr in assigned_prs:
             pr_diff = self.client.get_pr_diff(pr['html_url'])
-            if pr_diff.strip() == example_diff.strip():
+            normalized_pr_diff = normalize_diff(pr_diff)
+            
+            if normalized_pr_diff == normalized_example:
                 matching_prs.append(pr)
         
         return matching_prs
