@@ -56,6 +56,10 @@ class GitHubAPIClient:
         
         response = self._make_request('GET', 'search/issues', params={'q': query})
         
+        # Check for incomplete results and warn user
+        if response['incomplete_results']:
+            print("⚠️  Warning: Search results may be incomplete due to GitHub API limitations")
+        
         # Filter by title prefix
         return [pr for pr in response.get('items', []) if pr['title'].startswith(title_prefix)]
     
