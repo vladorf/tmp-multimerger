@@ -94,7 +94,7 @@ class GitHubAPIClient:
         endpoint = f'repos/{owner}/{repo}/pulls/{pr_number}/reviews'
         data = {
             'event': 'APPROVE',
-            'body': 'Auto-approved by multimerger script (link soon)'
+            'body': 'Auto-approved by [multimerger](https://github.com/vladorf/tmp-multimerger) script'
         }
         
         self._make_request('POST', endpoint, json=data)
