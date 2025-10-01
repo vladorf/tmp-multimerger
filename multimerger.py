@@ -51,8 +51,8 @@ class GitHubAPIClient:
         response.raise_for_status()
         return response.json()
     
-    def search_assigned_prs(self, title_prefix: str) -> List[Dict[str, Any]]:
-        query = f'is:pr is:open assignee:@me'
+    def search_assigned_prs(self, title_prefix: str, assignee:str)  -> List[Dict[str, Any]]:
+        query = f'is:pr is:open assignee:{assignee}'
         
         response = self._make_request('GET', 'search/issues', params={'q': query})
         
@@ -170,6 +170,11 @@ def main():
         help='Title prefix to search for in PR titles'
     )
     parser.add_argument(
+        '--assignee',
+        default='@me',
+        help='Match PRs to assignee'
+    )
+    parser.add_argument(
         '--token',
         help='GitHub token (defaults to GITHUB_TOKEN environment variable)'
     )
@@ -183,10 +188,10 @@ def main():
     try:
         client = GitHubAPIClient(token=args.token)
         
-        prs = client.search_assigned_prs(args.title_prefix)
+        prs = client.search_assigned_prs(args.title_prefix, args.assignee)
         
         if not prs:
-            print(f"No PRs assigned to you with title starting with '{args.title_prefix}'")
+            print(f"No PRs assigned to {args.assignee} with title starting with '{args.title_prefix}'")
             return
         
         # Filter to only matching PRs
